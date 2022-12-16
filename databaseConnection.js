@@ -1,4 +1,6 @@
-export const connectDb = async () => {
+const { db } = require("./db");
+
+const connectDb = async () => {
    try {
       const response = await db("users");
       if (response.length > 0) {
@@ -9,3 +11,5 @@ export const connectDb = async () => {
       console.log(error);
    }
 };
+
+module.exports = { connectDb };
