@@ -7,11 +7,11 @@ module.exports = {
    development: {
       client: "pg",
       connection: {
-         port: 4321,
+         port: 5432,
          host: "localhost",
-         user: "root",
-         database: "root",
-         password: "password",
+         user: "raghav",
+         database: "multer_minio",
+         password: "",
       },
    },
 };

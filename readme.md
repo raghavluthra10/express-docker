@@ -111,3 +111,20 @@ To start the container, do the following steps in projects dir:
 Everything is up and running, go to "http://localhost:8000" and you should see the response there.
 
 You can try deleting the container and creating a new one again, make sure you add the same path for volume with the same dir on docker host.
+
+## using minio
+
+first, we'll run an instance of minio inside docker container, and expose its port to our localhost.
+
+run `docker run -p 9000:9000 -p 9090:9090 --name minio -v ~/minio/data:/data -e "MINIO_ROOT_USER=user" -e "MINIO_ROOT_PASSWORD=password" -d quay.io/minio/minio server /data --console-address ":9090"`
+
+To understand the above command:
+
+1. "-p" option exposes container's port to our localhost. here we are using 2 ports. 9000 is for connecting to minio API while 9090 is to use minio console.
+2. "--name" is to give a name to the container.
+3. " ~/minio/data:/data" is for persisting volume. All of the data inside containers "data" directory will be mirrored in "minio/data" so that we dont loose any of it incase we delete the container.
+4. "-e" is for setting enviornment variables. these variables will let us login to console.
+5. "-d" means to run the container in detached mode.
+6. "quay.io/minio/minio" is image name.
+
+Open console and make a bucket by the name of "random"

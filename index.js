@@ -5,6 +5,16 @@ const { connectDb } = require("./databaseConnection");
 const multer = require("multer");
 connectDb();
 
+const Minio = require("minio");
+
+const minioClient = new Minio.Client({
+   endPoint: "localhost",
+   port: 9000,
+   useSSL: false,
+   accessKey: "user",
+   secretKey: "password",
+});
+
 const storage = multer.diskStorage({
    destination: function (req, file, cb) {
       cb(null, __dirname + "/uploads");
@@ -16,10 +26,24 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post("/upload", upload.single("image"), (req, res) => {
+app.post("/upload", upload.single("image"), async (req, res) => {
    try {
       console.log("req.file =>", req.file);
       console.log("req.body ->", req.body);
+
+      // file name
+      // file path
+
+      minioClient.fPutObject(
+         "random",
+         req.file.originalname,
+         req.file.path,
+         {},
+         function (err, etag) {
+            if (err) return console.log(err);
+            console.log("File uploaded successfully.");
+         }
+      );
 
       res.status(200).json({
          file: req.file,
