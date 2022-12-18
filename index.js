@@ -32,8 +32,10 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       console.log("req.file =>", req.file);
       console.log("req.body ->", req.body);
 
-      // file name
-      // file path
+      // add metadata which will consist of users id and name
+      const name = "user1";
+      const userId = 1;
+      const id = 1;
 
       // see if file already exists
 
@@ -41,7 +43,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
          "random",
          req.file.originalname,
          req.file.path,
-         {},
+         { name, userId, id },
          function (err, etag) {
             if (err) return console.log(err);
             console.log("File uploaded successfully.");
@@ -63,7 +65,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
    }
 });
 
-// download file api
+// download file api with image name
 app.get("/image/:name", async (req, res) => {
    try {
       const fileName = req.params["name"];
@@ -79,8 +81,6 @@ app.get("/image/:name", async (req, res) => {
             if (err) {
                return console.log(err);
             }
-
-            console.log("result =>", dataStream);
          }
       );
       return res.status(200).json({
@@ -92,6 +92,100 @@ app.get("/image/:name", async (req, res) => {
       return res.status(500).send("internal server error!");
    }
 });
+
+// download image with image id/userId
+app.get("/image", async (req, res) => {
+   try {
+      const fileName = req.file.filename;
+      const userId = 1;
+
+      minioClient.fGetObject("random", fileName);
+   } catch (error) {
+      console.log(error);
+      return res.status(500).send("internal server error!");
+   }
+});
+
+// get all files
+app.get("/images", async (req, res) => {
+   try {
+      let data = [];
+      const images = minioClient.listObjects("random", "", true);
+
+      images.on("data", function (obj) {
+         data.push(obj);
+      });
+      console.log("dtaattatatata", data);
+      images.on("end", function (obj) {
+         console.log("obj", obj);
+         console.log(data);
+      });
+
+      images.on("error", function (err) {
+         console.log(err);
+      });
+      return res.status(200).json({
+         message: "success",
+         data: data,
+      });
+   } catch (error) {
+      console.log(error);
+      return res.status(500).send("internal server error!");
+   }
+});
+
+// get single file url using PreSignedUrl
+app.get("/presigned", (req, res) => {
+   try {
+      let link = "";
+      minioClient.presignedGetObject(
+         "random",
+         "r.png",
+         24 * 60 * 60,
+         function (err, result) {
+            if (err) return console.log("error =>", err);
+            if (result) {
+               link = result;
+            }
+         }
+      );
+      return res.status(200).json({
+         message: "success",
+         link,
+      });
+   } catch (error) {
+      console.log(error);
+      return res.status(500).send("internal server error!");
+   }
+});
+
+app.get("/presignedAll", (req, res) => {
+   try {
+      let data = [];
+
+      minioClient.presignedUrl(
+         "GET",
+         "random",
+         "",
+         1000,
+         {},
+         function (err, result) {
+            if (err) return console.log(err);
+            console.log("result ======>", result);
+            data.push(result);
+         }
+      );
+      return res.status(200).json({
+         success: true,
+         data,
+      });
+   } catch (error) {
+      console.log(error);
+      return res.status(500).send("internal server error!");
+   }
+});
+
+// get all files of a single user
 
 // delete file api
 
